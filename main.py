@@ -17,12 +17,16 @@ FROM_PHONE_NUMBER_ID = getenv('FROM_PHONE_NUMBER_ID')
 WEBHOOK_VERIFY_TOKEN = getenv('WEBHOOK_VERIFY_TOKEN')
 WEBHOOK_URL = config['webhook']['url']  # + "/" + WEBHOOK_VERIFY_TOKEN
 
+WAITING_SENT_INTERVAL = int(config['system']['waiting_sent_interval'])
+WAITING_RECV_INTERVAL = int(config['system']['waiting_received_interval'])
+
 
 class WhatsApp_user_callback:
     def __init__(self, from_phone_number_id, access_token, webhook_url):
         self.whatsapp_api = WhatsApp_API(
             from_phone_number_id, access_token, webhook_url)
         self.send_msgs_dict = get_data_from_csv(CSV_FILE_NAME)
+        self.send_msgs_done = False
 
     def send_preschedule_msgs(self):
         if self.done_the_bot():
@@ -49,7 +53,7 @@ class WhatsApp_user_callback:
             if self.done_the_bot():
                 print("No more msg need to send!")
                 return
-            time.sleep(10)
+            time.sleep(WAITING_SENT_INTERVAL)
 
     def wait_4_msgs_received(self):
         while True:
@@ -65,7 +69,7 @@ class WhatsApp_user_callback:
                     self.send_msgs_dict[from_phone_number].pop(0)
                 received_msgs = None
 
-            time.sleep(10)
+            time.sleep(WAITING_RECV_INTERVAL)
 
     def done_the_bot(self):
         return False if len(self.send_msgs_dict) > 0 else True
@@ -77,7 +81,8 @@ def main():
     print("******************************")
     callback = WhatsApp_user_callback(
         FROM_PHONE_NUMBER_ID, ACCESS_TOKEN, WEBHOOK_URL)
-    threading.Thread(target=callback.send_preschedule_msgs).start()
+    threading.Thread(target=callback.send_preschedule_msgs,
+                     daemon=True).start()
     threading.Thread(target=callback.wait_4_msgs_received,
                      daemon=True).start()
 
