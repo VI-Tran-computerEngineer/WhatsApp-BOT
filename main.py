@@ -32,7 +32,7 @@ class WhatsApp_user_callback:
         if self.done_the_bot():
             print("No more msg need to send!")
             return
-        to_phone_numbers = [list(self.send_msgs_dict)[0]]
+        to_phone_numbers = list(self.send_msgs_dict.keys())
         while True:
             for phone_number in to_phone_numbers:
                 if len(self.send_msgs_dict[phone_number]) == 0:
