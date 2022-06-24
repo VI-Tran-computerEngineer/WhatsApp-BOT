@@ -2,10 +2,8 @@ import requests
 from requests.structures import CaseInsensitiveDict
 from json import dumps
 import configparser
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-cloud_version = config['whatsapp_api']['version']
+from dotenv import load_dotenv
+from os import getenv
 
 
 def setup_header(token):
@@ -15,11 +13,20 @@ def setup_header(token):
     return headers
 
 
+config = configparser.ConfigParser()
+config.read('config.ini')
+cloud_version = config['whatsapp_api']['version']
+WEBHOOK_URL = config['webhook']['url']  # + "/" + WEBHOOK_VERIFY_TOKEN
+load_dotenv()
+FROM_PHONE_NUMBER_ID = getenv('FROM_PHONE_NUMBER_ID')
+ACCESS_TOKEN = getenv('WHATSAPP_ACCESS_TOKEN')
+
+
 class WhatsApp_API:
-    def __init__(self, phone_number_id, access_token, webhook_url):
-        self.url = f"https://graph.facebook.com/{cloud_version}/{phone_number_id}/messages"
-        self.headers = setup_header(access_token)
-        self.webhook_url = webhook_url
+    def __init__(self):
+        self.url = f"https://graph.facebook.com/{cloud_version}/{FROM_PHONE_NUMBER_ID}/messages"
+        self.headers = setup_header(ACCESS_TOKEN)
+        self.webhook_url = WEBHOOK_URL
 
     def send_message(self, to_phone_number, msg):
         data = {
