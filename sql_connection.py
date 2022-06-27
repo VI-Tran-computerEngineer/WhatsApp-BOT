@@ -51,12 +51,16 @@ class MySQL_connector:
         return table
 
     def store_reply_to_table(self, phone_number, sent_msg_info, reply_msg):
-        current_day = datetime.now().strftime("%H:%M:%S")
+        current_day = datetime.now().strftime("%d:%m:%Y")
         sent_dtime = current_day + " " + sent_msg_info["time"]
         sent_msg = sent_msg_info["body"]
-        query_cmd = f"INSERT INTO {REPLIED_MSGS_TABLE} (datetime, phone_number, sent_msg, replied_msg) VALUES ({sent_dtime}, {phone_number}, {sent_msg}, {reply_msg})"
+        query = f"INSERT INTO {REPLIED_MSGS_TABLE} (datetime, phone_number, sent_msg, replied_msg)"
+        value = "VALUES (%s, %s, %s, %s)"
+        query_cmd = query + value
+        val = (sent_dtime, phone_number, sent_msg, reply_msg)
         try:
-            self.cursor.execute(query_cmd)
+            self.cursor.execute(query_cmd, val)
+            self.conn_object.commit()
         except BaseException as e:
             raise SQLQueryError(
                 "Failed to save replied messages into database!\n", e)

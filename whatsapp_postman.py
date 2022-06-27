@@ -24,8 +24,8 @@ class WhatsApp_user_callback:
 
         def sort_list(data_list):
             data_list = collections.deque(data_list)
-            data_list.rotate(1)
-            return data_list
+            data_list.rotate(-1)
+            return list(data_list)
 
         def is_next_day(dtime):
             current_day = datetime.now().strftime("%d/%m/%Y")
@@ -40,25 +40,35 @@ class WhatsApp_user_callback:
         to_phone_numbers = list(self.send_msgs_dict.keys())
         send_msgs_done = False
         current_day = None
+        for phone_number in to_phone_numbers:
+            while True:
+                send_msgs = self.send_msgs_dict[phone_number]
+                if self.check_phone_number_done(phone_number) or send_msgs[0]["sent"] == False:
+                    break
+                self.send_msgs_dict[phone_number] = sort_list(send_msgs)
+
         while True:
+            current_day = datetime.now().strftime("%d/%m/%Y")
             time.sleep(WAITING_SENT_INTERVAL)
+            if is_next_day(current_day):
+                send_msgs_done = False
+                self.reset_sent_status()
             if send_msgs_done:
-                current_day = datetime.now().strftime("%d/%m/%Y")
-                if is_next_day(current_day):
-                    send_msgs_done = False
-                    self.reset_sent_status()
                 continue
             for phone_number in to_phone_numbers:
                 # if sent the msg before ==> ignore the phone number
                 send_msgs = self.send_msgs_dict[phone_number]
                 if send_msgs[0]["sent"]:
+                    self.send_msgs_dict[phone_number] = sort_list(send_msgs)
                     continue
                 send_time = send_msgs[0]["time"]
                 msg = send_msgs[0]["body"]
-                if check_timer_status(send_time) == "ontime":
+
+                timer_status = check_timer_status(send_time)
+                if timer_status == "ontime":
                     self.whatsapp_api.send_message(phone_number, msg)
                     send_msgs[0]["sent"] = True
-                    send_msgs = sort_list(send_msgs)
+                    self.send_msgs_dict[phone_number] = sort_list(send_msgs)
 
             send_msgs_done = self.done_the_bot_today()
             if send_msgs_done:
@@ -72,7 +82,7 @@ class WhatsApp_user_callback:
                     from_phone_number = recv_msg["from"]
                     recved_msg = recv_msg["body"]
                     print(f"Received message from {from_phone_number}!")
-                    send_msg_info = self.send_msgs_dict[from_phone_number][0]
+                    send_msg_info = self.send_msgs_dict[from_phone_number][-1]
                     self.sql_connector.store_reply_to_table(
                         from_phone_number, send_msg_info, recved_msg)
                 received_msgs = None
@@ -82,7 +92,13 @@ class WhatsApp_user_callback:
     def done_the_bot_today(self):
         phone_numbers = list(self.send_msgs_dict.keys())
         for phone_number in phone_numbers:
-            if self.send_msgs_dict[phone_number][0] == False:
+            if self.send_msgs_dict[phone_number][0]["sent"] == False:
+                return False
+        return True
+
+    def check_phone_number_done(self, phone_number):
+        for msg in self.send_msgs_dict[phone_number]:
+            if msg["sent"] == False:
                 return False
         return True
 
@@ -144,6 +160,6 @@ def check_timer_status(send_time):
 
     if current_time > send_time + 5:
         return "overtime"
-    elif current_time == send_time:
+    elif send_time <= current_time:
         return "ontime"
     return None

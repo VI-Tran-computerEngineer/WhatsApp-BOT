@@ -1,3 +1,4 @@
 mysql_connector_repackaged==0.3.1
+mysql-connector==2.2.9
 python-dotenv==0.20.0
 requests==2.26.0

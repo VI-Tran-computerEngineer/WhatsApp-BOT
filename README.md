@@ -79,3 +79,56 @@ Run the command:
 ## Run the BOT:
 Run the command:
 ```python3 main.py```
+
+## Some supported command for MySQL:
+1. Create the new table:
+```
+CREATE TABLE <table_name> (
+    <column_name> <DATA TYPE>,
+    ....
+)
+
+"""Example for creating table named "to_phone_number":
+CREATE TABLE to_phone_number (
+phone_number VARCHAR(255), 
+msg_sent_schedule VARCHAR(255)
+)
+
+"""
+```
+
+2. Add new column into table
+```
+INSERT INTO <table_name> (<column_name>,...)
+VALUES (<value>,...)
+
+"""Example for adding new row into "to_phone_number" table:
+INSERT INTO to_phone_number (phone_number, msg_sent_schedule)
+VALUES ("123456789", "schedule_for_US_timezone")
+
+"""
+```
+
+3. Modify the specific row in table
+```
+UPDATE <table_name>
+SET <column_name>=<changed_value>,...
+WHERE <column_name>=<?>
+
+"""Example for updating schedule of phone_number "123456789":
+UPDATE to_phone_number
+SET msg_sent_schedule="schedule_for_VN_timezone",...
+WHERE phone_number="123456789"
+"""
+```
+
+4. Delete the specific row in table
+```
+DELETE FROM <table_name>
+WHERE <condition>,...
+
+"""Example for deleting the phone_number is "123456789" on "to_phone_number" column:
+DELETE FROM to_phone_number
+WHERE phone_number="123456789"
+"""
+```
