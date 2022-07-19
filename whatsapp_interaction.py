@@ -28,7 +28,7 @@ class WhatsApp_API:
         self.headers = setup_header(ACCESS_TOKEN)
         self.webhook_url = WEBHOOK_URL
 
-    def send_message(self, to_phone_number, msg):
+    def send_message(self, to_phone_number, msg, language):
         data = {
             "messaging_product": "whatsapp",
             "to": to_phone_number,
@@ -36,7 +36,7 @@ class WhatsApp_API:
             "template": {
                 "name": msg,
                 "language": {
-                    "code": "en_US"
+                    "code": language
                 }
             }
         }
@@ -47,6 +47,31 @@ class WhatsApp_API:
             if resp.status_code == 200:
                 print(
                     f"Sent message to {to_phone_number} with context \"{msg}\"!")
+        except requests.exceptions.HTTPError as errh:
+            print("Http Error:", errh)
+        except requests.exceptions.ConnectionError as errc:
+            print("Error Connecting:", errc)
+        except requests.exceptions.Timeout as errt:
+            print("Timeout Error:", errt)
+        except requests.exceptions.RequestException as err:
+            print("OOps: Something Else", err)
+
+    def send_custom_message(self, to_phone_number, msg):
+        data = {
+            "messaging_product": "whatsapp",
+            "to": to_phone_number,
+            "type": "text",
+            "text": {
+                "body": msg,
+            }
+        }
+        try:
+            resp = requests.post(
+                self.url, headers=self.headers, data=dumps(data))
+            resp.raise_for_status()
+            if resp.status_code == 200:
+                print(
+                    f"\nSent feedback message to {to_phone_number} with context \"{msg}\"!\n")
         except requests.exceptions.HTTPError as errh:
             print("Http Error:", errh)
         except requests.exceptions.ConnectionError as errc:

@@ -7,18 +7,20 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 HOST_NAME = config["mysql"]["hostname"]
+PORT = int(config["mysql"]["port"])
 USERNAME = config["mysql"]["username"]
 PASSWORD = config["mysql"]["password"]
 DATABASE_NAME = config["mysql"]["database_name"]
 
 TO_PHONE_TABLE = config["mysql"]["to_phone_table"]
 REPLIED_MSGS_TABLE = config["mysql"]["replied_msg_table"]
+USER_INFO_TABLE = config["mysql"]["user_info_table"]
 
 
 def connect_to_mysql():
     try:
         conn_object = mysql.connector.connect(
-            host=HOST_NAME, user=USERNAME, password=PASSWORD, database=DATABASE_NAME)
+            host=HOST_NAME, user=USERNAME, password=PASSWORD, database=DATABASE_NAME, port=PORT)
         print("Connected to SQL database!")
     except:
         raise SQLConnectionError("Can't connect to MySQL database.")
@@ -41,7 +43,7 @@ class MySQL_connector:
         return table
 
     def query_msgs_schedule(self, schedule_name):
-        query_cmd = f"SELECT sending_time, msg_name FROM {schedule_name}"
+        query_cmd = f"SELECT sending_time, msg_name, msg_language FROM {schedule_name}"
         try:
             self.cursor.execute(query_cmd)
         except BaseException as e:
@@ -66,7 +68,7 @@ class MySQL_connector:
                 "Failed to save replied messages into database!\n", e)
 
     def query_reply_messages(self, phone_number):
-        query_cmd = f"SELECT * FROM reply_messages WHERE phone_number=\"{phone_number}\""
+        query_cmd = f"SELECT * FROM {REPLIED_MSGS_TABLE} WHERE phone_number=\"{phone_number}\""
         try:
             self.cursor.execute(query_cmd)
         except:
@@ -74,3 +76,16 @@ class MySQL_connector:
                 "Failed to query messages schedules from database!")
         table = self.cursor.fetchall()
         return table
+
+    def query_user_info(self, phone_number):
+        query_cmd = f"SELECT * FROM {USER_INFO_TABLE} WHERE phone_number=\"{phone_number}\""
+        try:
+            self.cursor.execute(query_cmd)
+        except:
+            raise SQLQueryError(
+                "Failed to query messages schedules from database!")
+        table = self.cursor.fetchall()
+        if len(table) == 1 and len(table[0]) > 1:
+            return table[0][1:]
+        else:
+            return None

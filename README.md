@@ -76,9 +76,22 @@ Run the command:
 
 7. Open "config.ini" and modify the "replied_msg_table" parameter by table name.
 
+8. Create the table contains user infomations. It must contain 4 columns name "phone_number", "replied_msg_body", "user_info",	"language".	
+```
+------------------------------------------------------------------
+|| phone_number | replied_msg_body  | user_info |   language    ||
+||  <string>	|     <string>      | <string>  |   <string>    ||
+||  <string>	|     <string>      | <string>  |   <string> 	||
+                     		    ......
+||  <string>	|     <string>      | <string>  |   <string> 	||
+------------------------------------------------------------------
+```
+
+9. Open "config.ini" and modify the "user_info_table" parameter by table name.
+
 ## Run the BOT:
 Run the command:
-```python3 main.py```
+```source run_the_bot.sh```
 
 ## Some supported command for MySQL:
 1. Create the new table:
@@ -113,11 +126,11 @@ VALUES ("123456789", "schedule_for_US_timezone")
 ```
 UPDATE <table_name>
 SET <column_name>=<changed_value>,...
-WHERE <column_name>=<?>
+WHERE <condition>,...
 
 """Example for updating schedule of phone_number "123456789":
 UPDATE to_phone_number
-SET msg_sent_schedule="schedule_for_VN_timezone",...
+SET msg_sent_schedule="schedule_for_VN_timezone"
 WHERE phone_number="123456789"
 """
 ```
@@ -127,7 +140,7 @@ WHERE phone_number="123456789"
 DELETE FROM <table_name>
 WHERE <condition>,...
 
-"""Example for deleting the phone_number is "123456789" on "to_phone_number" column:
+"""Example for deleting phone_number "123456789" in "to_phone_number" table:
 DELETE FROM to_phone_number
 WHERE phone_number="123456789"
 """

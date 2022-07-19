@@ -45,7 +45,13 @@ app.post("/webhook", (req, res) => {
         ) {
             let msg_phone = req.body.entry[0].changes[0].value.messages[0].from;
             let timestamp = req.body.entry[0].changes[0].value.messages[0].timestamp;
-            let msg_text = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
+            let msg_text;
+            if (req.body.entry[0].changes[0].value.messages[0].text != undefined) {
+                msg_text = req.body.entry[0].changes[0].value.messages[0].text.body;
+            }
+            else {
+                msg_text = req.body.entry[0].changes[0].value.messages[0].button.text;
+            }
             if (messages[key].length > 1000) {
                 messages[key] = []
             }
@@ -64,7 +70,7 @@ app.post("/webhook", (req, res) => {
 });
 
 // Accepts POST requests at /webhook endpoint
-app.get("/webhook" + verify_token + "/messages", (req, res) => {
+app.get("/webhook/messages", (req, res) => {
     if (messages[key].length > 0) {
         res.status(200).send(messages);
         messages[key] = [];
